@@ -1,7 +1,6 @@
 version: 2.1
 
 executors:
-
   miniconda3:
     docker:
       # Basic miniconda installation.
@@ -18,19 +17,17 @@ executors:
       - image: okwrtdsh/anaconda3
 
 jobs:
-
   linux64-remote-test:
     parameters:
       os:
         type: executor
-
     executor: << parameters.os >>
     steps:
       - run:
-          - name: Update packages
-              command: |
-                bash .circleci/scripts/linux_update.sh
-                bash .circleci/scripts/conda_update.sh
+          name: Update packages
+          command: |
+            bash .circleci/scripts/linux_update.sh
+            bash .circleci/scripts/conda_update.sh
       - run:
           name: Setup conda and conda-build
           command: |
