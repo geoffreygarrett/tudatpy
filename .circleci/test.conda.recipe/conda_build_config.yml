@@ -1,0 +1,6 @@
+channel_sources: conda-forge,defaults,ggarrett13
+ignore_build_only_deps:
+  - numpy
+  - python
+numpy: '1.14'
+

@@ -1,13 +1,15 @@
 {% set name = "tudatpy" %}
-{% set version = "0.5" %}
-{% set git_rev = git_rev|default("ca4e317ebc2a7b8d9aba40b2b4ef131b3b9f8eb6", true) %}
+{% set version = "0.5.1" %}
 
 package:
   name: "{{ name }}"
   version: "{{ version }}"
 
 source:
-  path: ../../
+  path:
+    ../../
+  #  git_url: https://github.com/ggarrett13/tudatpy.git
+  #  git_rev: adc99b6cef6fb3f2f242d705397620ec6af85552
 
 build:
   # A non-negative integer representing the build number of the package.
@@ -22,35 +24,36 @@ build:
     - {{ pin_compatible('tudat', max_pin='x.x') }}
 
 requirements:
-    build:
-      # Tools required to build the package. These packages are run on the build
-      # system and include things such as revision control systems (Git, SVN) make
-      # tools (GNU make, Autotool, CMake) and compilers (real cross, pseudo-cross,
-      # or native when not cross-compiling), and any source pre-processors.
-      - {{ compiler('cxx') }}            # [not win]
-      - {{ compiler('c') }}              # [not win]
-      - vs2017_{{ target_platform  }}    # [win]
-      - cmake
+  build:
+    # Tools required to build the package. These packages are run on the build
+    # system and include things such as revision control systems (Git, SVN) make
+    # tools (GNU make, Autotool, CMake) and compilers (real cross, pseudo-cross,
+    # or native when not cross-compiling), and any source pre-processors.
+    - {{ compiler('cxx') }}            # [not win]
+    - {{ compiler('c') }}              # [not win]
+    - vs2017_{{ target_platform  }}    # [win]
+    - cmake
 
-    host:
-      # Packages that need to be specific to the target platform when the
-      # target platform is not necessarily the same as the native build
-      # platform
-      - boost-cpp==1.64
-      - tudat
-      - tudat-cspice
-      - tudat-sofa
-      - python==3.7
-      - eigen
+  host:
+    # Packages that need to be specific to the target platform when the
+    # target platform is not necessarily the same as the native build
+    # platform
+    #      - boost-cpp==1.64
+    - tudat
+    - tudat-cspice
+    - tudat-sofa
+    - python==3.7
+    - eigen
 
-    run:
-      # Packages required to run the package. These are the dependencies
-      # that are installed automatically whenever the package is installed.
-      # Package names should follow the package match specifications.
-      - {{ pin_compatible('boost-cpp', max_pin='x.x') }}
-      - {{ pin_compatible('numpy') }}
-      - {{ pin_compatible('tudat') }}
-      - python==3.7
+  run:
+    # Packages required to run the package. These are the dependencies
+    # that are installed automatically whenever the package is installed.
+    # Package names should follow the package match specifications.
+    #      - {{ pin_compatible('boost-cpp', max_pin='x.x') }}
+    - {{ pin_compatible('numpy') }}
+    - {{ pin_compatible('pandas') }}
+    - {{ pin_compatible('tudat') }}
+    - python==3.7
 
 about:
   home: http://tudat.tudelft.nl/
