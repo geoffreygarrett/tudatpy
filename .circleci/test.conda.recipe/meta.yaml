@@ -40,10 +40,8 @@ requirements:
       - tudat
       - tudat-cspice
       - tudat-sofa
-#      - numpy
       - python==3.7
       - eigen
-#      - pybind11
 
     run:
       # Packages required to run the package. These are the dependencies
