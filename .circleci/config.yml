@@ -153,5 +153,7 @@ workflows:
   linux64:
     jobs:
       - linux64_py37_anaconda3
+      - linux64_py37_anaconda3_cuda
       - linux64_py37_miniconda3
-      - linux64_py37_c_ggarrett13_remote_install
+      - linux64_py37_remote_install
+      - linux64_py37_remote_install_cuda
