@@ -60,7 +60,7 @@ jobs:
     executor: << parameters.os >>
     steps:
       - checkout
-      - run:
+#     - run:
 #          name: Update conda
 #          command: |
 #            conda update -n base conda -y
