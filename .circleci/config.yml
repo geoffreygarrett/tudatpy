@@ -24,10 +24,11 @@ jobs:
     executor: << parameters.os >>
     steps:
       - run:
-          name: Update packages
+          name: Update conda
           command: |
-            bash ./.circleci/scripts/linux_update.sh
-            bash ./.circleci/scripts/conda_update.sh
+            conda update -n base conda -y
+#            bash ./.circleci/scripts/linux_update.sh
+#            bash ./.circleci/scripts/conda_update.sh
       - run:
           name: Setup conda and conda-build
           command: |
@@ -58,10 +59,11 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Update packages
+          name: Update conda
           command: |
-            bash ./.circleci/scripts/linux_update.sh
-            bash ./.circleci/scripts/conda_update.sh
+            conda update -n base conda -y
+#            bash ./.circleci/scripts/linux_update.sh
+#            bash ./.circleci/scripts/conda_update.sh
       - run:
           name: Setup conda and conda-build
           command: |
