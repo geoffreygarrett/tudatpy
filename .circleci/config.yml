@@ -1,6 +1,42 @@
 version: 2.1
 
 jobs:
+
+  linux64_py37_anaconda3_cuda:
+    docker:
+        - image: okwrtdsh/anaconda3
+    steps:
+      - checkout
+      - run:
+          name: Build and test
+          command: |
+            apt-get install make
+            conda install conda-build -y
+            conda config --add channels ggarrett13
+            conda config --add channels conda-forge
+            conda-build .circleci/test.conda.recipe
+      - run:
+          name: Install and test
+          command: |
+            conda create --name py37 python=3.7
+            conda init bash
+            source /root/.bashrc
+            conda activate py37
+            conda install --use-local tudatpy -y
+            mkdir tmp
+            cd tmp
+            touch test_no_undefined_symbol.txt
+            python -c 'from tudatpy import constants; print(constants.SPEED_OF_LIGHT)' > test_no_undefined_symbol.txt
+            python -c 'from tudatpy import constants; print(constants.SPEED_OF_LIGHT)'
+      - store_test_results:
+          path: ./tmp/test_no_undefined_symbol.txt
+      - store_artifacts:
+          path: ./tmp/test_no_undefined_symbol.txt
+          destination: /test_results
+      - store_artifacts:
+          path: /opt/conda/conda-bld/linux-64/
+          destination: /linux-64
+
   linux64_py37_anaconda3:
     docker:
       - image: continuumio/anaconda3
@@ -71,7 +107,28 @@ jobs:
           path: /opt/conda/conda-bld/linux-64
           destination: /linux-64
 
-  linux64_py37_c_ggarrett13_remote_install:
+  linux64_py37_remote_install_cuda:
+    docker:
+      - image: okwrtdsh/anaconda3
+    steps:
+      - run:
+          name: Install and test
+          command: |
+            conda config --add channels ggarrett13
+            conda config --add channels conda-forge
+            conda create --name py37 python=3.7
+            conda init bash
+            source /root/.bashrc
+            conda activate py37
+            conda install tudatpy -y
+            mkdir tmp
+            cd tmp
+            touch test_no_undefined_symbol.txt
+            python -c 'from tudatpy import constants; print(constants.SPEED_OF_LIGHT)' > test_no_undefined_symbol.txt
+            python -c 'from tudatpy import constants; print(constants.SPEED_OF_LIGHT)'
+
+
+  linux64_py37_remote_install:
     docker:
       - image: continuumio/anaconda3
     steps:
