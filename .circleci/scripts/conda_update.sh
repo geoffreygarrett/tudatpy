@@ -1,3 +1,3 @@
 #!/bin/bash
 
-conda update -n base conda
+conda update -n base conda -y
