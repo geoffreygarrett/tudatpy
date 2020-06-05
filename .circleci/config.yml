@@ -32,8 +32,8 @@ jobs:
       - run:
           name: Setup conda and conda-build
           command: |
-            conda --add channels ggarrett13
-            conda --add channels conda-forge
+            conda config --add channels ggarrett13
+            conda config --add channels conda-forge
             conda install conda-build -y
             conda create --name py37 python=3.7
             conda init bash
