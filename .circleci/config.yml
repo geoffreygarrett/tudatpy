@@ -17,7 +17,7 @@ executors:
       - image: okwrtdsh/anaconda3
 
 jobs:
-  linux64-remote-test:
+  linux-64-remote-test:
     parameters:
       os:
         type: executor
@@ -49,7 +49,7 @@ jobs:
           path: ./tmp/test_no_undefined_symbol.txt
           destination: /test_results
 
-  linux64-local-test:
+  linux-64-local-test:
     parameters:
       os:
         type: executor
