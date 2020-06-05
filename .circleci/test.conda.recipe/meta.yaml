@@ -33,6 +33,7 @@ requirements:
     - {{ compiler('c') }}              # [not win]
     - vs2017_{{ target_platform  }}    # [win]
     - cmake
+    - make
 
   host:
     # Packages that need to be specific to the target platform when the
