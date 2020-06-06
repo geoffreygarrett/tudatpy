@@ -3,7 +3,8 @@ version: 2.1
 executors:
   linux-bionic:
     docker:
-      - image: continuumio/miniconda3
+#      - image: continuumio/miniconda3
+      - image: circleci/buildpack-deps:bionic
 
 
 # Job definitions
@@ -12,7 +13,7 @@ variables:
     run:
       name: Build and test
       command: |
-        source $BASH_ENV
+#        source $BASH_ENV
         echo "CONDA_BUILD_SYSROOT = $CONDA_BUILD_SYSROOT"
 
         # build the library
