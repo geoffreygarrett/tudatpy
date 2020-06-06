@@ -10,23 +10,23 @@ executors:
 # Job definitions
 variables:
   install-miniconda3: &install-miniconda3
-    - run:
-        name: Download and install miniconda3
-        command: |
-          wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
-          bash ~/miniconda.sh -b -p $HOME/miniconda
-          export PATH=$HOME/miniconda/bin:$PATH
-          conda init bash
-          conda update --yes conda  # Update CONDA without command line prompt
-          #eval "$($HOME/miniconda/bin/conda shell.bash hook)"
+    run:
+      name: Download and install miniconda3
+      command: |
+        wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
+        bash ~/miniconda.sh -b -p $HOME/miniconda
+        export PATH=$HOME/miniconda/bin:$PATH
+        conda init bash
+        conda update --yes conda  # Update CONDA without command line prompt
+        #eval "$($HOME/miniconda/bin/conda shell.bash hook)"
 
   initialise-conda: &initialise-conda
-    - run:
-        name: Initiate and setup conda env
-        command: |
-          export PATH=$HOME/miniconda/bin:$PATH
-          conda create --name build_env python=3.7 -y
-          conda install conda-build -y
+    run:
+      name: Initiate and setup conda env
+      command: |
+        export PATH=$HOME/miniconda/bin:$PATH
+        conda create --name build_env python=3.7 -y
+        conda install conda-build -y
 
   build: &build
     run:
