@@ -20,6 +20,18 @@ variables:
         conda update --yes conda  # Update CONDA without command line prompt
         #eval "$($HOME/miniconda/bin/conda shell.bash hook)"
 
+  install-build-essential: &install-build-essential
+    run:
+      name: Install build-essential
+      command: |
+        # Echo each command
+        set -x
+        # Exit on error.
+        set -e
+        # Core deps.
+        sudo apt-get install build-essential cmake
+
+
   initialise-conda: &initialise-conda
     run:
       name: Initiate and setup conda env
@@ -85,6 +97,7 @@ jobs:
     steps:
       - checkout
       - *install-miniconda3
+      - *install-build-essential
       - *initialise-conda
       - *build
       - *deploy
