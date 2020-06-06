@@ -1,302 +1,86 @@
 version: 2.1
 
 executors:
-  miniconda3:
+  linux-bionic:
     docker:
-      # Basic miniconda installation.
       - image: continuumio/miniconda3
 
-  anaconda3:
-    docker:
-      # Installation with anaconda3.
-      - image: continuumio/anaconda3
 
-  anaconda3-cuda:
-    docker:
-      # Has cuda installed.
-      - image: okwrtdsh/anaconda3
+# Job definitions
+variables:
+  build: &build
+    run:
+      name: Build and test
+      command: |
+        source $BASH_ENV
+        echo "CONDA_BUILD_SYSROOT = $CONDA_BUILD_SYSROOT"
+
+        # build the library
+        echo "\n\nRunning build\n\n"
+        git submodule update --init --recursive
+        conda build --no-anaconda-upload --quiet .conda
+
+        # get build artifact path
+        echo "\n\nGetting artifact name\n\n"
+        conda_artifact=$(conda build --quiet --output .conda)
+        printf 'export CONDA_ARTIFACT=%s\n' "${conda_artifact}" >> $BASH_ENV
+        source $BASH_ENV
+
+        # merge the results from all of the tests into a single file for parsing
+        # echo "\n\nSaving test results\n\n"
+        # mkdir test-reports
+        # cp /tmp/*-junit.xml test-reports
+
+  deploy: &deploy
+    run:
+      name: Deploy new version to conda
+      branches:
+        only:
+          - master
+          - develop
+          - /rc-.*/
+
+      command: |
+        conda install anaconda-client
+        export ANACONDA_API_TOKEN=$ANACONDA_TOKEN
+        # upload to conda -- logout afterwards to release the token and avoid race conditions
+        # see the comment above where the version is calculated, to understand why both master
+        # and dev are being pushed.
+        if [ "${CIRCLE_BRANCH}" == "master" ]; then
+          anaconda upload --user ggarrett13 ${CONDA_ARTIFACT}
+        elif [ "${CIRCLE_BRANCH}" == "develop" ]; then
+          anaconda upload --user ggarrett13 --label dev --version ${NEW_GIT_TAG} ${CONDA_ARTIFACT}
+        fi
+        anaconda logout
 
 jobs:
-  linux-64-remote-test:
+  build-and-test:
     parameters:
       os:
         type: executor
-    executor: << parameters.os >>
-    steps:
-      - run:
-          name: Update conda
-          command: |
-            conda update -n base conda -y
-#            bash ./.circleci/scripts/linux_update.sh
-#            bash ./.circleci/scripts/conda_update.sh
-      - run:
-          name: Setup conda and conda-build
-          command: |
-            conda config --add channels ggarrett13
-            conda config --add channels conda-forge
-            conda install conda-build -y
-            conda create --name py37 python=3.7
-            conda init bash
-            source /root/.bashrc
-            conda activate py37
-      - run:
-          name: Install and test
-          command: |
-            conda install tudatpy -y
-            mkdir tmp
-            cd tmp
-            touch test_no_undefined_symbol.txt
-            python -c 'from tudatpy import constants; print(constants.SPEED_OF_LIGHT)' > test_no_undefined_symbol.txt
-            python -c 'from tudatpy import constants; print(constants.SPEED_OF_LIGHT)'
-      - store_artifacts:
-          path: ./tmp/test_no_undefined_symbol.txt
-          destination: /test_results
-
-  linux-64-local-test:
-    parameters:
-      os:
-        type: executor
-
     executor: << parameters.os >>
     steps:
       - checkout
       - run:
-          name: Update conda
+          name: Download and install miniconda3
           command: |
-            conda update -n base conda -y
-#            bash ./.circleci/scripts/linux_update.sh
-#            bash ./.circleci/scripts/conda_update.sh
+            wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
+            bash ~/miniconda.sh -b -p $HOME/miniconda
+            eval "$($HOME/miniconda/bin/conda shell.bash hook)"
       - run:
-          name: Setup conda and conda-build
+          name: Initiate and setup conda env
           command: |
-            conda config --add channels ggarrett13
-            conda config --add channels conda-forge
+            conda init
+            conda create --name build_env python=3.7 -y
             conda install conda-build -y
-            conda create --name py37 python=3.7
-            conda init bash
-            source /root/.bashrc
-            conda activate py37
-      - run:
-          name: Build and test
-          command: |
-            conda-build .circleci/test.conda.recipe
-      - run:
-          name: Install and test
-          command: |
-            conda install --use-local tudatpy -y
-            mkdir tmp
-            cd tmp
-            touch test_no_undefined_symbol.txt
-            python -c 'from tudatpy import constants; print(constants.SPEED_OF_LIGHT)' > test_no_undefined_symbol.txt
-            python -c 'from tudatpy import constants; print(constants.SPEED_OF_LIGHT)'
-      #      - store_test_results:
-      #          path: ./tmp/test_no_undefined_symbol.txt
-      - store_artifacts:
-          path: ./tmp/test_no_undefined_symbol.txt
-          destination: /test_results
-      - store_artifacts:
-          path: /opt/conda/conda-bld/linux-64/
-          destination: /linux-64
-#
-#
-#  linux64:
-#    docker:
-#      - image: okwrtdsh/anaconda3
-#    steps:
-#      - checkout
-#      - run:
-#          name: Build and test
-#          command: |
-#            conda update -n base conda
-#            apt-get install make
-#            conda install conda-build -y
-#            conda config --add channels ggarrett13
-#            conda config --add channels conda-forge
-#            conda-build .circleci/test.conda.recipe
-#      - run:
-#          name: Install and test
-#          command: |
-#            conda create --name py37 python=3.7
-#            conda init bash
-#            source /root/.bashrc
-#
-#      - store_test_results:
-#          path: ./tmp/test_no_undefined_symbol.txt
-#      - store_artifacts:
-#          path: ./tmp/test_no_undefined_symbol.txt
-#          destination: /test_results
-#      - store_artifacts:
-#          path: /opt/conda/conda-bld/linux-64/
-#          destination: /linux-64
-#
-#  linux64_py37_anaconda3_cuda:
-#    docker:
-#      - image: okwrtdsh/anaconda3
-#    steps:
-#      - checkout
-#      - run:
-#          name: Build and test
-#          command: |
-#            conda update -n base conda
-#            apt-get install make
-#            conda install conda-build -y
-#            conda config --add channels ggarrett13
-#            conda config --add channels conda-forge
-#            conda-build .circleci/test.conda.recipe
-#      - run:
-#          name: Install and test
-#          command: |
-#            conda create --name py37 python=3.7
-#            conda init bash
-#            source /root/.bashrc
-#            conda activate py37
-#            conda install --use-local tudatpy -y
-#            mkdir tmp
-#            cd tmp
-#            touch test_no_undefined_symbol.txt
-#            python -c 'from tudatpy import constants; print(constants.SPEED_OF_LIGHT)' > test_no_undefined_symbol.txt
-#            python -c 'from tudatpy import constants; print(constants.SPEED_OF_LIGHT)'
-#      - store_test_results:
-#          path: ./tmp/test_no_undefined_symbol.txt
-#      - store_artifacts:
-#          path: ./tmp/test_no_undefined_symbol.txt
-#          destination: /test_results
-#      - store_artifacts:
-#          path: /opt/conda/conda-bld/linux-64/
-#          destination: /linux-64
-#
-#  linux64_py37_anaconda3:
-#    docker:
-#      - image: continuumio/anaconda3
-#    steps:
-#      - checkout
-#      - run:
-#          name: Build and test
-#          command: |
-#            conda update -n base conda
-#            apt-get install make
-#            conda install conda-build -y
-#            conda config --add channels ggarrett13
-#            conda config --add channels conda-forge
-#            conda-build .circleci/test.conda.recipe
-#      - run:
-#          name: Install and test
-#          command: |
-#            conda create --name py37 python=3.7
-#            conda init bash
-#            source /root/.bashrc
-#            conda activate py37
-#            conda install --use-local tudatpy -y
-#            mkdir tmp
-#            cd tmp
-#            touch test_no_undefined_symbol.txt
-#            python -c 'from tudatpy import constants; print(constants.SPEED_OF_LIGHT)' > test_no_undefined_symbol.txt
-#            python -c 'from tudatpy import constants; print(constants.SPEED_OF_LIGHT)'
-#      - store_test_results:
-#          path: ./tmp/test_no_undefined_symbol.txt
-#      - store_artifacts:
-#          path: ./tmp/test_no_undefined_symbol.txt
-#          destination: /test_results
-#      - store_artifacts:
-#          path: /opt/conda/conda-bld/linux-64/
-#          destination: /linux-64
-#
-#  linux64_py37_miniconda3:
-#    docker:
-#      - image: continuumio/miniconda3
-#    steps:
-#      - checkout
-#      - run:
-#          name: Build and test
-#          command: |
-#            conda update -n base conda
-#            apt-get install make
-#            conda install conda-build -y
-#            conda config --add channels ggarrett13
-#            conda config --add channels conda-forge
-#            conda-build .circleci/test.conda.recipe
-#      - run:
-#          name: Install and test
-#          command: |
-#            conda create --name py37 python=3.7
-#            conda init bash
-#            source /root/.bashrc
-#            conda activate py37
-#            conda install --use-local tudatpy -y
-#            mkdir tmp
-#            cd tmp
-#            touch test_no_undefined_symbol.txt
-#            python -c 'from tudatpy import constants; print(constants.SPEED_OF_LIGHT)' > test_no_undefined_symbol.txt
-#            python -c 'from tudatpy import constants; print(constants.SPEED_OF_LIGHT)'
-#      - store_test_results:
-#          path: ./tmp/test_no_undefined_symbol.txt
-#      - store_artifacts:
-#          path: ./tmp/test_no_undefined_symbol.txt
-#          destination: /test_results
-#      - store_artifacts:
-#          path: /opt/conda/conda-bld/linux-64
-#          destination: /linux-64
-#
-#  linux64_py37_remote_install_cuda:
-#    docker:
-#      - image: okwrtdsh/anaconda3
-#    steps:
-#      - run:
-#          name: Install and test
-#          command: |
-#            conda update -n base conda
-#            conda config --add channels ggarrett13
-#            conda config --add channels conda-forge
-#            conda create --name py37 python=3.7
-#            conda init bash
-#            source /root/.bashrc
-#            conda activate py37
-#            conda install tudatpy -y
-#            mkdir tmp
-#            cd tmp
-#            touch test_no_undefined_symbol.txt
-#            python -c 'from tudatpy import constants; print(constants.SPEED_OF_LIGHT)' > test_no_undefined_symbol.txt
-#            python -c 'from tudatpy import constants; print(constants.SPEED_OF_LIGHT)'
-#
-#
-#  linux64_py37_remote_install:
-#    docker:
-#      - image: continuumio/anaconda3
-#    steps:
-#      - run:
-#          name: Install and test
-#          command: |
-#            conda update -n base conda
-#            conda config --add channels ggarrett13
-#            conda config --add channels conda-forge
-#            conda create --name py37 python=3.7
-#            conda init bash
-#            source /root/.bashrc
-#            conda activate py37
-#            conda install tudatpy -y
-#            mkdir tmp
-#            cd tmp
-#            touch test_no_undefined_symbol.txt
-#            python -c 'from tudatpy import constants; print(constants.SPEED_OF_LIGHT)' > test_no_undefined_symbol.txt
-#            python -c 'from tudatpy import constants; print(constants.SPEED_OF_LIGHT)'
+      - *build
+      - *deploy
 
 workflows:
   version: 2.1
   linux-64:
     jobs:
-      - linux-64-remote-test:
+      - build-and-test:
           matrix:
             parameters:
-              os: [anaconda3, miniconda3, anaconda3-cuda]
-      - linux-64-local-test:
-          matrix:
-            parameters:
-              os: [anaconda3, miniconda3, anaconda3-cuda]
-
-#  linux64:
-#    jobs:
-#      - linux64_py37_anaconda3
-#      - linux64_py37_anaconda3_cuda
-#      - linux64_py37_miniconda3
-#      - linux64_py37_remote_install
-#      - linux64_py37_remote_install_cuda
+              os: [linux-bionic]
