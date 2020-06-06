@@ -33,6 +33,7 @@ variables:
       name: Build and test
       command: |
         # source $BASH_ENV
+        export PATH=$HOME/miniconda/bin:$PATH
         echo "CONDA_BUILD_SYSROOT = $CONDA_BUILD_SYSROOT"
 
         # build the library
@@ -61,6 +62,7 @@ variables:
           - /rc-.*/
 
       command: |
+        export PATH=$HOME/miniconda/bin:$PATH
         conda install anaconda-client
         export ANACONDA_API_TOKEN=$ANACONDA_TOKEN
         # upload to conda -- logout afterwards to release the token and avoid race conditions
