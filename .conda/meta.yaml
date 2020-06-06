@@ -43,7 +43,7 @@ requirements:
     - tudat
     - tudat-cspice
     - tudat-sofa
-    - python==3.7
+    - python
     - eigen
 
   run:
@@ -54,7 +54,7 @@ requirements:
     - {{ pin_compatible('numpy') }}
     - {{ pin_compatible('pandas') }}
     - {{ pin_compatible('tudat') }}
-    - python==3.7
+    - python
 
 about:
   home: http://tudat.tudelft.nl/
