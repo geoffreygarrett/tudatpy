@@ -83,11 +83,12 @@ autosummary_generate = True  # Turn on sphinx.ext.autosummary
 add_module_names = False
 autodoc_member_order = 'groupwise'
 
-# napoleon_type_aliases = {
-#     "Dict": ":class:`~typing.Dict`",
-#     "Callable": ":class:`~typing.Callable`",
-#     "List": ":class:`~typing.List`",
-# }
+napoleon_type_aliases = {
+    "AccelerationMap": ":class:`~typing.Dict`",
+    "Callable": ":class:`~typing.Callable`",
+    "List": ":class:`~typing.List`",
+    "np.ndarray": "numpy.ndarray",
+}
 
 
 # to not skip __init__
@@ -151,11 +152,12 @@ todo_include_todos = True
 # a list of builtin themes.
 #
 # html_theme = 'sphinx_rtd_theme'
-html_theme = 'furo'
-html_theme_options = {
-    "navigation_with_keys": True,
-    "announcement": "<em>These docs are a work-in-progress!</em>",
-}
+html_theme = "furo"
+# html_theme = "pydata_sphinx_theme"
+# html_theme_options = {
+#     "navigation_with_keys": True,
+#     "announcement": "<em>These docs are a work-in-progress!</em>",
+# }
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

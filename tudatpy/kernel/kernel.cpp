@@ -19,7 +19,7 @@ PYBIND11_MODULE(kernel, m) {
   // NOTE: the 'options' object needs to stay alive
   // throughout the whole definition of the module.
   py::options options;
-  options.enable_function_signatures( );
+  options.disable_function_signatures( );
   options.enable_user_defined_docstrings( );
 
   // Export the tudat version.
@@ -43,7 +43,6 @@ PYBIND11_MODULE(kernel, m) {
   // constants module
   auto constants = m.def_submodule("constants");
   tudatpy::constants::expose_constants(constants);
-
 
   // io module
   auto io = m.def_submodule("io");
